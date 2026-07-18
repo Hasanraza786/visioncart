@@ -1,0 +1,12 @@
+# Never bundle the local SQLite dev database into the serverless deployment.
+# Production must use VISIONCART_DATABASE_URL (Neon Postgres).
+data/
+*.db
+
+.venv/
+__pycache__/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+tests/
+.env

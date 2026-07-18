@@ -2,6 +2,7 @@
 # Local development uses uv + pyproject.toml; this file mirrors runtime deps.
 alembic
 argon2-cffi
+certifi
 email-validator
 fastapi
 google-auth

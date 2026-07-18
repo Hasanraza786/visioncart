@@ -7,6 +7,7 @@ from collections.abc import Iterator
 from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, Session, sessionmaker
+from sqlalchemy.pool import NullPool
 
 from .config import get_settings
 
@@ -18,9 +19,14 @@ class Base(DeclarativeBase):
 def _build_engine() -> Engine:
     url = get_settings().resolved_database_url
     connect_args: dict[str, object] = {}
+    # Vercel / serverless: no persistent connections across invocations.
+    # Neon pooler also prefers short-lived clients (NullPool).
+    engine_kwargs: dict[str, object] = {"echo": False, "future": True}
     if url.startswith("sqlite"):
         connect_args["check_same_thread"] = False
-    return create_engine(url, echo=False, future=True, connect_args=connect_args)
+    else:
+        engine_kwargs["poolclass"] = NullPool
+    return create_engine(url, connect_args=connect_args, **engine_kwargs)
 
 
 engine: Engine = _build_engine()
