@@ -1,8 +1,12 @@
 #import "VisionCartTryOnModule.h"
 
 #import "VisionCartTryOnViewController.h"
+
+#import <ARKit/ARKit.h>
+#import <AVFoundation/AVFoundation.h>
 #import <QuartzCore/QuartzCore.h>
 #import <React/RCTUtils.h>
+#import <Vision/Vision.h>
 
 @interface VisionCartTryOnModule ()
 @property(nonatomic, copy, nullable) RCTPromiseResolveBlock activeResolve;
@@ -18,27 +22,56 @@
 
 RCT_EXPORT_MODULE(VisionCartTryOn)
 
+#pragma mark - Spec
+
 - (void)isSupported:(NSString *)category
             resolve:(RCTPromiseResolveBlock)resolve
              reject:(RCTPromiseRejectBlock)reject
 {
-  static NSSet<NSString *> *supportedCategories;
+  static NSSet<NSString *> *faceCategories;
+  static NSSet<NSString *> *handCategories;
   static dispatch_once_t onceToken;
   dispatch_once(&onceToken, ^{
-    supportedCategories =
-        [NSSet setWithArray:@[ @"glasses", @"watch", @"ring", @"earring", @"nose_pin" ]];
+    faceCategories = [NSSet setWithArray:@[ @"glasses", @"earring", @"nose_pin" ]];
+    handCategories = [NSSet setWithArray:@[ @"watch", @"ring" ]];
   });
 
-  BOOL supported = [supportedCategories containsObject:category];
   NSMutableDictionary *result = [@{
-    @"supported" : @(supported),
-    @"category" : category,
+    @"supported" : @NO,
+    @"category" : category ?: @"",
   } mutableCopy];
-  if (supported) {
-    result[@"engine"] = @"placeholder";
-  } else {
-    result[@"reason"] = @"Unknown try-on category";
+
+  if ([faceCategories containsObject:category]) {
+    if ([ARFaceTrackingConfiguration isSupported]) {
+      result[@"supported"] = @YES;
+      result[@"engine"] = @"arkit-face";
+    } else if ([self hasCameraAtPosition:AVCaptureDevicePositionFront]) {
+      result[@"supported"] = @YES;
+      result[@"engine"] = @"avfoundation-face-fallback";
+    } else {
+      result[@"reason"] = @"Face try-on requires a front camera or ARKit face tracking";
+    }
+    resolve(result);
+    return;
   }
+
+  if ([handCategories containsObject:category]) {
+    BOOL visionHandAvailable = NSClassFromString(@"VNDetectHumanHandPoseRequest") != Nil;
+    BOOL hasCamera = [self hasCameraAtPosition:AVCaptureDevicePositionFront] ||
+                     [self hasCameraAtPosition:AVCaptureDevicePositionBack];
+    if (visionHandAvailable && hasCamera) {
+      result[@"supported"] = @YES;
+      result[@"engine"] = @"vision-hand";
+    } else if (!visionHandAvailable) {
+      result[@"reason"] = @"Vision hand pose detection is unavailable";
+    } else {
+      result[@"reason"] = @"Hand try-on requires a camera";
+    }
+    resolve(result);
+    return;
+  }
+
+  result[@"reason"] = @"Unknown try-on category";
   resolve(result);
 }
 
@@ -51,6 +84,22 @@ RCT_EXPORT_MODULE(VisionCartTryOn)
     reject(@"E_INVALID_CONFIG", @"sessionId must not be empty", nil);
     return;
   }
+
+  NSString *category = config.category() ?: @"";
+  NSString *productId = config.productId() ?: @"";
+  NSString *platformAssetUri = config.platformAssetUri() ?: @"";
+  BOOL captureEnabled = config.captureEnabled();
+
+  JS::NativeVisionCartTryOn::ProductDimensions dimensions = config.dimensions();
+  double widthMm = dimensions.widthMm();
+  double heightMm = dimensions.heightMm();
+  double depthMm = dimensions.depthMm();
+
+  JS::NativeVisionCartTryOn::AnchorProfile anchorProfile = config.anchorProfile();
+  double defaultScale = anchorProfile.defaultScale();
+  JS::NativeVisionCartTryOn::AdjustmentLimits limits = anchorProfile.adjustmentLimits();
+  double minScale = limits.minScale();
+  double maxScale = limits.maxScale();
 
   NSString *token = NSUUID.UUID.UUIDString;
   @synchronized(self) {
@@ -87,9 +136,36 @@ RCT_EXPORT_MODULE(VisionCartTryOn)
     VisionCartTryOnViewController *viewController =
         [[VisionCartTryOnViewController alloc] init];
     viewController.modalPresentationStyle = UIModalPresentationFullScreen;
+    viewController.sessionId = sessionId;
+    viewController.productId = productId;
+    viewController.category = category;
+    viewController.platformAssetUri = platformAssetUri;
+    viewController.captureEnabled = captureEnabled;
+    viewController.widthMm = widthMm;
+    viewController.heightMm = heightMm;
+    viewController.depthMm = depthMm;
+    viewController.minScale = minScale > 0 ? minScale : 0.5;
+    viewController.maxScale = maxScale > viewController.minScale ? maxScale : 2.0;
+    viewController.defaultScale = defaultScale > 0 ? defaultScale : 1.0;
+
     __weak VisionCartTryOnModule *weakSelf = self;
     viewController.onClose = ^{
-      [weakSelf resolveCancellationWithToken:token];
+      [weakSelf resolveOutcomeWithToken:token
+                                outcome:@"cancelled"
+                             captureUri:nil
+                              errorCode:nil];
+    };
+    viewController.onCompleted = ^(NSString *_Nullable captureUri) {
+      [weakSelf resolveOutcomeWithToken:token
+                                outcome:@"completed"
+                             captureUri:captureUri
+                              errorCode:nil];
+    };
+    viewController.onFailed = ^(NSString *errorCode) {
+      [weakSelf resolveOutcomeWithToken:token
+                                outcome:@"failed"
+                             captureUri:nil
+                              errorCode:errorCode];
     };
 
     @synchronized(self) {
@@ -107,7 +183,8 @@ RCT_EXPORT_MODULE(VisionCartTryOn)
 {
   NSURL *cachesURL =
       [NSFileManager.defaultManager URLsForDirectory:NSCachesDirectory
-                                           inDomains:NSUserDomainMask].firstObject;
+                                           inDomains:NSUserDomainMask]
+          .firstObject;
   NSURL *sdkCacheURL = [cachesURL URLByAppendingPathComponent:@"VisionCartTryOn"
                                                   isDirectory:YES];
   NSError *error;
@@ -116,6 +193,18 @@ RCT_EXPORT_MODULE(VisionCartTryOn)
     reject(@"E_CACHE_CLEAR_FAILED", @"Unable to clear the try-on cache", error);
     return;
   }
+
+  // Also clear temporary capture files from this SDK.
+  NSString *tmp = NSTemporaryDirectory();
+  NSArray<NSString *> *tmpFiles =
+      [NSFileManager.defaultManager contentsOfDirectoryAtPath:tmp error:nil];
+  for (NSString *name in tmpFiles) {
+    if ([name hasPrefix:@"visioncart-tryon-"]) {
+      NSString *path = [tmp stringByAppendingPathComponent:name];
+      [NSFileManager.defaultManager removeItemAtPath:path error:nil];
+    }
+  }
+
   resolve(nil);
 }
 
@@ -143,7 +232,21 @@ RCT_EXPORT_MODULE(VisionCartTryOn)
   }
 }
 
-- (void)resolveCancellationWithToken:(NSString *)token
+#pragma mark - Session helpers
+
+- (BOOL)hasCameraAtPosition:(AVCaptureDevicePosition)position
+{
+  AVCaptureDeviceDiscoverySession *session = [AVCaptureDeviceDiscoverySession
+      discoverySessionWithDeviceTypes:@[ AVCaptureDeviceTypeBuiltInWideAngleCamera ]
+                            mediaType:AVMediaTypeVideo
+                             position:position];
+  return session.devices.count > 0;
+}
+
+- (void)resolveOutcomeWithToken:(NSString *)token
+                        outcome:(NSString *)outcome
+                     captureUri:(NSString *_Nullable)captureUri
+                      errorCode:(NSString *_Nullable)errorCode
 {
   RCTPromiseResolveBlock resolve;
   NSString *sessionId;
@@ -158,13 +261,22 @@ RCT_EXPORT_MODULE(VisionCartTryOn)
     [self clearActiveSession];
   }
 
-  if (resolve != nil && sessionId != nil) {
-    resolve(@{
-      @"sessionId" : sessionId,
-      @"outcome" : @"cancelled",
-      @"durationMs" : @((CACurrentMediaTime() - startedAt) * 1000.0),
-    });
+  if (resolve == nil || sessionId == nil) {
+    return;
   }
+
+  NSMutableDictionary *result = [@{
+    @"sessionId" : sessionId,
+    @"outcome" : outcome,
+    @"durationMs" : @((CACurrentMediaTime() - startedAt) * 1000.0),
+  } mutableCopy];
+  if (captureUri.length > 0) {
+    result[@"captureUri"] = captureUri;
+  }
+  if (errorCode.length > 0) {
+    result[@"errorCode"] = errorCode;
+  }
+  resolve(result);
 }
 
 - (void)rejectSessionWithToken:(NSString *)token

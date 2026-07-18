@@ -15,7 +15,7 @@ import {Button} from '../../components';
 import {COLORS, SIZES} from '../../constants';
 import {environment} from '../../config/environment';
 import type {RootStackParamList} from '../../navigation/types';
-import {useAuthStore} from '../../store';
+import {useAuthStore, useGuestStore} from '../../store';
 import {formatDate, formatPrice, titleCase} from '../../utils';
 
 type Nav = NativeStackNavigationProp<RootStackParamList>;
@@ -24,11 +24,16 @@ export function Account() {
   const navigation = useNavigation<Nav>();
   const queryClient = useQueryClient();
   const user = useAuthStore(state => state.user);
+  const accessToken = useAuthStore(state => state.accessToken);
   const clearSession = useAuthStore(state => state.clearSession);
-  const ordersQuery = useOrders();
+  const guestKey = useGuestStore(state => state.guestKey);
+  const clearGuest = useGuestStore(state => state.clearGuest);
+  const isSignedIn = Boolean(accessToken);
+  const ordersQuery = useOrders(isSignedIn);
 
   const logout = () => {
     clearSession();
+    clearGuest();
     queryClient.clear();
     navigation.reset({index: 0, routes: [{name: 'Welcome'}]});
   };
@@ -51,27 +56,96 @@ export function Account() {
     </View>
   );
 
+  const links = (
+    <View style={styles.links}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Favorites"
+        onPress={() => navigation.navigate('Favorites')}
+        style={styles.linkRow}>
+        <Text style={styles.linkText}>Favorites</Text>
+        <Text style={styles.linkChevron}>›</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Recently tried"
+        onPress={() => navigation.navigate('RecentlyTried')}
+        style={styles.linkRow}>
+        <Text style={styles.linkText}>Recently tried</Text>
+        <Text style={styles.linkChevron}>›</Text>
+      </Pressable>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Settings"
+        onPress={() => navigation.navigate('Settings')}
+        style={styles.linkRow}>
+        <Text style={styles.linkText}>Settings</Text>
+        <Text style={styles.linkChevron}>›</Text>
+      </Pressable>
+    </View>
+  );
+
   const header = (
     <View>
-      <Text style={styles.title}>Account</Text>
+      <Text accessibilityRole="header" style={styles.title}>
+        Account
+      </Text>
       <View style={styles.profile}>
         <View style={styles.avatar}>
           <Text style={styles.avatarText}>
-            {(user?.name || user?.email || 'V').charAt(0).toUpperCase()}
+            {isSignedIn
+              ? (user?.name || user?.email || 'V').charAt(0).toUpperCase()
+              : 'G'}
           </Text>
         </View>
         <View style={styles.profileBody}>
-          <Text style={styles.profileName}>{user?.name || 'VisionCart shopper'}</Text>
-          <Text style={styles.profileEmail}>{user?.email}</Text>
+          {isSignedIn ? (
+            <>
+              <Text style={styles.profileName}>
+                {user?.name || 'VisionCart shopper'}
+              </Text>
+              <Text style={styles.profileEmail}>{user?.email}</Text>
+            </>
+          ) : (
+            <>
+              <Text style={styles.profileName}>Guest shopper</Text>
+              <Text style={styles.profileEmail}>
+                {guestKey
+                  ? 'Browsing without an account'
+                  : 'Sign in to sync favorites and orders'}
+              </Text>
+            </>
+          )}
         </View>
       </View>
-      <Text style={styles.sectionTitle}>Order history</Text>
+      {links}
+      {isSignedIn ? (
+        <Text style={styles.sectionTitle}>Order history</Text>
+      ) : (
+        <View style={styles.guestPrompt}>
+          <Text style={styles.guestPromptText}>
+            Create an account to place orders and save favorites.
+          </Text>
+          <Button
+            label="Sign in"
+            onPress={() => navigation.navigate('Login')}
+            style={styles.guestButton}
+          />
+          <Button
+            label="Create account"
+            onPress={() => navigation.navigate('Register')}
+            variant="secondary"
+          />
+        </View>
+      )}
     </View>
   );
 
   const footer = (
     <View style={styles.footer}>
-      <Button label="Log out" onPress={logout} variant="ghost" />
+      {isSignedIn ? (
+        <Button label="Log out" onPress={logout} variant="ghost" />
+      ) : null}
       {environment.enableDiagnostics ? (
         <Pressable
           accessibilityRole="button"
@@ -83,11 +157,20 @@ export function Account() {
     </View>
   );
 
+  if (!isSignedIn) {
+    return (
+      <SafeAreaView edges={['top']} style={styles.safe}>
+        <View style={styles.list}>{header}</View>
+        {footer}
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView edges={['top']} style={styles.safe}>
       {ordersQuery.isLoading ? (
         <>
-          {header}
+          <View style={styles.list}>{header}</View>
           <View style={styles.center}>
             <ActivityIndicator color={COLORS.primary} />
           </View>
@@ -129,7 +212,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     marginTop: SIZES.spacing.lg,
-    marginBottom: SIZES.spacing.xl,
+    marginBottom: SIZES.spacing.lg,
   },
   avatar: {
     width: 56,
@@ -158,11 +241,45 @@ const styles = StyleSheet.create({
     color: COLORS.textSubtle,
     fontSize: SIZES.label,
   },
+  links: {
+    marginBottom: SIZES.spacing.xl,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.border,
+  },
+  linkRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: SIZES.spacing.md,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.border,
+  },
+  linkText: {
+    color: COLORS.text,
+    fontSize: SIZES.body,
+    fontWeight: '600',
+  },
+  linkChevron: {
+    color: COLORS.textSubtle,
+    fontSize: SIZES.subheading,
+  },
   sectionTitle: {
     color: COLORS.text,
     fontSize: SIZES.subheading,
     fontWeight: '700',
     marginBottom: SIZES.spacing.md,
+  },
+  guestPrompt: {
+    gap: SIZES.spacing.md,
+    marginBottom: SIZES.spacing.lg,
+  },
+  guestPromptText: {
+    color: COLORS.textMuted,
+    fontSize: SIZES.body,
+    lineHeight: 24,
+  },
+  guestButton: {
+    marginTop: SIZES.spacing.xs,
   },
   orderCard: {
     padding: SIZES.spacing.md,
@@ -214,6 +331,7 @@ const styles = StyleSheet.create({
   },
   footer: {
     marginTop: SIZES.spacing.lg,
+    paddingHorizontal: SIZES.spacing.lg,
     gap: SIZES.spacing.md,
   },
   devLink: {

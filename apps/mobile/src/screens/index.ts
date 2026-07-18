@@ -10,3 +10,6 @@ export {Cart} from './Cart';
 export {Checkout} from './Checkout';
 export {OrderConfirmation} from './OrderConfirmation';
 export {Account} from './Account';
+export {Favorites} from './Favorites';
+export {RecentlyTriedScreen} from './RecentlyTried';
+export {Settings} from './Settings';

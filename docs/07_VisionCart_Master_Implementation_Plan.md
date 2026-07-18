@@ -247,14 +247,18 @@ UI feature expansion native feasibility aur asset-contract proof se pehle start 
 - [x] Commerce MVP backend (auth JWT, catalog, cart, COD orders, admin APIs) + seed.
 - [x] Admin web app (`apps/admin`) for categories, products, orders.
 - [x] Mobile consumer shell: auth, home, detail, try-on launch, cart, COD checkout.
-- [ ] Glasses vertical slice (real tracking/rendering) completed.
-- [ ] Production hardening / Vercel production deploy completed.
+- [x] Vercel production deploy for API + admin (Neon Postgres).
+- [x] Phase 2 catalog assets, guests, favorites, try-on summaries, Alembic migrations.
+- [x] Development-mode glasses/watch/ring/earring/nose_pin try-on on iOS and Android.
+- [x] Phase 4 guest, favorites, recent, settings, account deletion flows.
+- [ ] Production-licensed/calibrated assets + Filament/RealityKit full 3D loading.
+- [ ] Full physical-device performance matrix and store release.
 
 ## Next implementation task
 
-Commerce MVP code path is in place — see `09_VisionCart_Commerce_MVP_Status.md`.
-Wake-up checklist: iOS team signing confirm, Android USB adb install, release keystore file,
-Apple Sign in with Apple capability, Vercel env + Neon Postgres, then native AR vertical slice.
+See `10_VisionCart_Phases_2_6_Status.md`. Redeploy API after pushing Phase 2 code,
+then run physical-device QA across all five categories. Production assets and store
+release remain open.
 
 ## Documentation maintenance rule
 

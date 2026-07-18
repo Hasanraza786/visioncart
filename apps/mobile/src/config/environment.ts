@@ -36,7 +36,7 @@ const environmentConfigs: Record<AppEnvironmentName, unknown> = {
   },
   production: {
     name: 'production',
-    apiBaseUrl: 'https://api.visioncart.example',
+    apiBaseUrl: 'https://api-flax-omega.vercel.app',
     enableDiagnostics: false,
   },
 };

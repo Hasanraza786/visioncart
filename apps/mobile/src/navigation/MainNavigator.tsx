@@ -7,12 +7,15 @@ import {
   Boot,
   Cart,
   Checkout,
+  Favorites,
   Foundation,
   Home,
   Login,
   OrderConfirmation,
   ProductDetail,
+  RecentlyTriedScreen,
   Register,
+  Settings,
   TryOnLauncher,
   Welcome,
 } from '../screens';
@@ -104,6 +107,21 @@ export function MainNavigator() {
         component={OrderConfirmation}
         name="OrderConfirmation"
         options={{title: 'Order placed', headerBackVisible: false}}
+      />
+      <Stack.Screen
+        component={Favorites}
+        name="Favorites"
+        options={{title: 'Favorites'}}
+      />
+      <Stack.Screen
+        component={RecentlyTriedScreen}
+        name="RecentlyTried"
+        options={{title: 'Recently tried'}}
+      />
+      <Stack.Screen
+        component={Settings}
+        name="Settings"
+        options={{title: 'Settings'}}
       />
       <Stack.Screen
         component={Foundation}

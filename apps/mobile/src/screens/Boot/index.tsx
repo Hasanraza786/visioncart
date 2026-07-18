@@ -3,21 +3,24 @@ import {useEffect} from 'react';
 import {ActivityIndicator, Text, View} from 'react-native';
 import {APP_NAME, APP_TAGLINE, COLORS} from '../../constants';
 import type {RootStackParamList} from '../../navigation/types';
-import {useAuthStore} from '../../store';
+import {useAuthStore, useGuestStore} from '../../store';
 import {styles} from './styles';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Boot'>;
 
 export function Boot({navigation}: Props) {
-  const hasHydrated = useAuthStore(state => state.hasHydrated);
+  const authHydrated = useAuthStore(state => state.hasHydrated);
   const accessToken = useAuthStore(state => state.accessToken);
+  const guestHydrated = useGuestStore(state => state.hasHydrated);
+  const guestKey = useGuestStore(state => state.guestKey);
 
   useEffect(() => {
-    if (!hasHydrated) {
+    if (!authHydrated || !guestHydrated) {
       return;
     }
-    navigation.replace(accessToken ? 'Main' : 'Welcome');
-  }, [hasHydrated, accessToken, navigation]);
+    const canEnter = Boolean(accessToken || guestKey);
+    navigation.replace(canEnter ? 'Main' : 'Welcome');
+  }, [authHydrated, guestHydrated, accessToken, guestKey, navigation]);
 
   return (
     <View style={styles.container}>

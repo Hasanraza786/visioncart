@@ -3,12 +3,13 @@ import type {NativeStackScreenProps} from '@react-navigation/native-stack';
 import {tryOnSdk, type TryOnConfig} from '@visioncart/tryon-sdk';
 import {useCallback, useEffect, useState} from 'react';
 import {ActivityIndicator, Image, StyleSheet, Text, View} from 'react-native';
-import {catalogApi} from '../../api_services';
+import {assetsApi, catalogApi, tryonApi} from '../../api_services';
 import {getTryOnCategory, getTryOnModel} from '../../assets';
 import {Button} from '../../components';
 import {COLORS, SIZES} from '../../constants';
 import {environment} from '../../config/environment';
 import type {RootStackParamList} from '../../navigation/types';
+import {useAuthStore, useGuestStore} from '../../store';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'TryOnLauncher'>;
 
@@ -25,36 +26,17 @@ const DEFAULT_DIMENSIONS: Record<
   nose_pin: {widthMm: 6, heightMm: 6, depthMm: 4},
 };
 
-function buildConfig(
-  productId: number,
-  category: TryOnCategory,
-  assetUri: string,
-): TryOnConfig {
-  return {
-    sessionId: `tryon-${productId}-${Date.now()}`,
-    productId: String(productId),
-    variantId: 'default',
-    category,
-    platformAssetUri: assetUri,
-    assetChecksum: '0'.repeat(64),
-    dimensions: DEFAULT_DIMENSIONS[category],
-    anchorProfile: {
-      version: '1.0.0',
-      rootNode: 'root',
-      defaultScale: 1,
-      adjustmentLimits: {
-        minScale: 0.8,
-        maxScale: 1.2,
-        maxOffsetMm: 20,
-        maxRotationDegrees: 15,
-      },
-    },
-    captureEnabled: false,
-  };
+function padChecksum(value: string): string {
+  if (value.length >= 64) {
+    return value.slice(0, 64);
+  }
+  return value.padEnd(64, '0');
 }
 
 export function TryOnLauncher({navigation, route}: Props) {
   const {productId} = route.params;
+  const accessToken = useAuthStore(state => state.accessToken);
+  const guestKey = useGuestStore(state => state.guestKey);
   const [phase, setPhase] = useState<Phase>('preparing');
   const [message, setMessage] = useState('Preparing your try-on session…');
 
@@ -63,11 +45,17 @@ export function TryOnLauncher({navigation, route}: Props) {
     setMessage('Preparing your try-on session…');
 
     try {
-      const product = await catalogApi.getProduct(productId);
-      const category = getTryOnCategory(product.tryon_model_key);
+      const [product, resolved] = await Promise.all([
+        catalogApi.getProduct(productId),
+        assetsApi.resolve(productId),
+      ]);
+
+      const category =
+        getTryOnCategory(product.tryon_model_key) ??
+        getTryOnCategory(resolved.category);
       const asset = getTryOnModel(product.tryon_model_key);
 
-      if (!category || asset === undefined) {
+      if (!category) {
         setPhase('error');
         setMessage('This product is not available for try-on.');
         return;
@@ -80,13 +68,67 @@ export function TryOnLauncher({navigation, route}: Props) {
         return;
       }
 
-      const assetUri = Image.resolveAssetSource(asset)?.uri ?? '';
+      const bundledUri =
+        asset !== undefined ? Image.resolveAssetSource(asset)?.uri ?? '' : '';
+      const platformAssetUri =
+        resolved.uri.startsWith('bundled://') || !resolved.uri
+          ? bundledUri
+          : resolved.uri;
+
+      if (!platformAssetUri) {
+        setPhase('error');
+        setMessage('Try-on asset is not available for this product.');
+        return;
+      }
+
+      const defaults = DEFAULT_DIMENSIONS[category];
+      const sessionId = `tryon-${productId}-${Date.now()}`;
+      const config: TryOnConfig = {
+        sessionId,
+        productId: String(productId),
+        variantId: resolved.version || 'default',
+        category,
+        platformAssetUri,
+        assetChecksum: padChecksum(resolved.checksum_sha256 || 'dev'),
+        dimensions: {
+          widthMm: resolved.width_mm || defaults.widthMm,
+          heightMm: resolved.height_mm || defaults.heightMm,
+          depthMm: resolved.depth_mm || defaults.depthMm,
+        },
+        anchorProfile: {
+          version: '1.0.0',
+          rootNode: resolved.root_node || 'root',
+          defaultScale: resolved.default_scale || 1,
+          adjustmentLimits: {
+            minScale: 0.8,
+            maxScale: 1.2,
+            maxOffsetMm: 20,
+            maxRotationDegrees: 15,
+          },
+        },
+        captureEnabled: true,
+      };
+
       setPhase('active');
       setMessage('Try-on session is open.');
 
-      const result = await tryOnSdk.open(
-        buildConfig(product.id, category, assetUri),
-      );
+      const result = await tryOnSdk.open(config);
+
+      try {
+        await tryonApi.recordSession({
+          session_key: sessionId.slice(0, 64),
+          product_id: product.id,
+          category,
+          outcome: result.outcome,
+          duration_ms: result.durationMs,
+          engine: capability.engine ?? '',
+          error_code: result.errorCode ?? null,
+          guest_key: accessToken ? null : guestKey,
+        });
+      } catch {
+        // Session recording is best-effort.
+      }
+
       setPhase('done');
       setMessage(
         result.outcome === 'completed'
@@ -101,7 +143,7 @@ export function TryOnLauncher({navigation, route}: Props) {
       setPhase('error');
       setMessage(`Try-on couldn't start on this device.${detail}`);
     }
-  }, [productId]);
+  }, [productId, accessToken, guestKey]);
 
   useEffect(() => {
     runTryOn();
@@ -121,9 +163,7 @@ export function TryOnLauncher({navigation, route}: Props) {
           ]}
         />
       )}
-      <Text
-        accessibilityLiveRegion="polite"
-        style={styles.message}>
+      <Text accessibilityLiveRegion="polite" style={styles.message}>
         {message}
       </Text>
 

@@ -22,6 +22,7 @@ import {Button, TextField} from '../../components';
 import {COLORS, SIZES} from '../../constants';
 import type {RootStackParamList} from '../../navigation/types';
 import {useAuthStore} from '../../store';
+import {mergeGuestAfterAuth} from '../../utils';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Login'>;
 
@@ -31,8 +32,9 @@ export function Login({navigation}: Props) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
 
-  const goToApp = (auth: AuthResponse) => {
+  const goToApp = async (auth: AuthResponse) => {
     setSession(auth);
+    await mergeGuestAfterAuth();
     navigation.reset({index: 0, routes: [{name: 'Main'}]});
   };
 
@@ -95,7 +97,11 @@ export function Login({navigation}: Props) {
           value={password}
         />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? (
+          <Text accessibilityLiveRegion="polite" style={styles.error}>
+            {error}
+          </Text>
+        ) : null}
 
         <Button
           label="Sign in"

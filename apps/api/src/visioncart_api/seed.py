@@ -1,21 +1,29 @@
 """Idempotent database seeding.
 
 Run with: ``python -m visioncart_api.seed`` (or ``npm run seed``).
-
-Seeds:
-  * Admin user (from VISIONCART_ADMIN_EMAIL / VISIONCART_ADMIN_PASSWORD)
-  * 5 try-on categories (glasses, ring, watch, earring, nose_pin)
-  * 5 products (one per category) priced in USD cents
 """
 
 from __future__ import annotations
+
+import hashlib
+import json
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .config import get_settings
 from .db import SessionLocal, init_db
-from .models import AuthProvider, Category, Product, User, UserRole
+from .models import (
+    AssetPlatform,
+    AssetStatus,
+    AssetVersion,
+    AuthProvider,
+    Category,
+    Product,
+    ProductVariant,
+    User,
+    UserRole,
+)
 from .security import hash_password
 
 CATEGORIES: list[dict[str, str]] = [
@@ -46,37 +54,45 @@ CATEGORIES: list[dict[str, str]] = [
     },
 ]
 
-# tryon_model_key values match the try-on category keys / bundled GLB assets.
 PRODUCTS: list[dict[str, object]] = [
     {
         "slug": "glasses",
         "name": "Aviator Classic",
         "brand": "VisionCart",
         "color": "Gold",
-        "description": "Timeless aviator frames with a lightweight metal build.",
+        "description": "Timeless aviator frames with a lightweight metal build. Development try-on asset.",
         "price_cents": 12900,
         "tryon_model_key": "glasses",
         "preview_url": "https://cdn.visioncart.dev/previews/glasses/aviator-classic.png",
+        "width_mm": 140.0,
+        "height_mm": 45.0,
+        "depth_mm": 145.0,
     },
     {
         "slug": "ring",
         "name": "Solitaire Band",
         "brand": "VisionCart",
         "color": "Silver",
-        "description": "A minimalist solitaire band that suits any occasion.",
+        "description": "A minimalist solitaire band. Visual preview only — not sizing.",
         "price_cents": 24900,
         "tryon_model_key": "ring",
         "preview_url": "https://cdn.visioncart.dev/previews/ring/solitaire-band.png",
+        "width_mm": 20.0,
+        "height_mm": 20.0,
+        "depth_mm": 8.0,
     },
     {
         "slug": "watch",
         "name": "Chrono Steel",
         "brand": "VisionCart",
         "color": "Black",
-        "description": "A stainless-steel chronograph with a modern dial.",
+        "description": "A stainless-steel chronograph. Visual preview only — not sizing.",
         "price_cents": 39900,
         "tryon_model_key": "watch",
         "preview_url": "https://cdn.visioncart.dev/previews/watch/chrono-steel.png",
+        "width_mm": 42.0,
+        "height_mm": 42.0,
+        "depth_mm": 12.0,
     },
     {
         "slug": "earring",
@@ -87,6 +103,9 @@ PRODUCTS: list[dict[str, object]] = [
         "price_cents": 8900,
         "tryon_model_key": "earring",
         "preview_url": "https://cdn.visioncart.dev/previews/earring/pearl-drop.png",
+        "width_mm": 12.0,
+        "height_mm": 30.0,
+        "depth_mm": 8.0,
     },
     {
         "slug": "nose_pin",
@@ -97,6 +116,9 @@ PRODUCTS: list[dict[str, object]] = [
         "price_cents": 4900,
         "tryon_model_key": "nose_pin",
         "preview_url": "https://cdn.visioncart.dev/previews/nose-pin/crystal-stud.png",
+        "width_mm": 6.0,
+        "height_mm": 6.0,
+        "depth_mm": 4.0,
     },
 ]
 
@@ -116,7 +138,6 @@ def _seed_admin(db: Session) -> None:
         db.add(admin)
         print(f"Created admin user: {email}")
     else:
-        # Keep role authoritative without clobbering an existing password.
         if admin.role != UserRole.admin:
             admin.role = UserRole.admin
             print(f"Promoted existing user to admin: {email}")
@@ -146,27 +167,85 @@ def _seed_products(db: Session, categories: dict[str, Category]) -> None:
         name = str(data["name"])
         category = categories[slug]
         existing = db.scalar(
-            select(Product).where(
-                Product.category_id == category.id, Product.name == name
+            select(Product).where(Product.category_id == category.id, Product.name == name)
+        )
+        if existing is None:
+            product = Product(
+                category_id=category.id,
+                name=name,
+                brand=str(data["brand"]),
+                color=str(data["color"]),
+                description=str(data["description"]),
+                price_cents=int(data["price_cents"]),  # type: ignore[call-overload]
+                currency="USD",
+                tryon_model_key=str(data["tryon_model_key"]),
+                preview_url=str(data["preview_url"]),
+                width_mm=float(data["width_mm"]),  # type: ignore[arg-type]
+                height_mm=float(data["height_mm"]),  # type: ignore[arg-type]
+                depth_mm=float(data["depth_mm"]),  # type: ignore[arg-type]
+                is_active=True,
+            )
+            db.add(product)
+            db.commit()
+            db.refresh(product)
+            print(f"Created product: {name}")
+        else:
+            existing.width_mm = float(data["width_mm"])  # type: ignore[arg-type]
+            existing.height_mm = float(data["height_mm"])  # type: ignore[arg-type]
+            existing.depth_mm = float(data["depth_mm"])  # type: ignore[arg-type]
+            db.commit()
+            product = existing
+
+        variant = db.scalar(
+            select(ProductVariant).where(
+                ProductVariant.product_id == product.id, ProductVariant.sku == f"{slug}-default"
             )
         )
-        if existing is not None:
-            continue
-        product = Product(
-            category_id=category.id,
-            name=name,
-            brand=str(data["brand"]),
-            color=str(data["color"]),
-            description=str(data["description"]),
-            price_cents=int(data["price_cents"]),  # type: ignore[call-overload]
-            currency="USD",
-            tryon_model_key=str(data["tryon_model_key"]),
-            preview_url=str(data["preview_url"]),
-            is_active=True,
+        if variant is None:
+            db.add(
+                ProductVariant(
+                    product_id=product.id,
+                    sku=f"{slug}-default",
+                    label="Default",
+                    is_default=True,
+                )
+            )
+            db.commit()
+
+        asset = db.scalar(
+            select(AssetVersion).where(
+                AssetVersion.product_id == product.id,
+                AssetVersion.platform == AssetPlatform.shared,
+                AssetVersion.version == "dev-1.0.0",
+            )
         )
-        db.add(product)
-        print(f"Created product: {name}")
-    db.commit()
+        if asset is None:
+            uri = f"bundled://{slug}.glb"
+            checksum = hashlib.sha256(uri.encode()).hexdigest()
+            db.add(
+                AssetVersion(
+                    product_id=product.id,
+                    platform=AssetPlatform.shared,
+                    version="dev-1.0.0",
+                    status=AssetStatus.development,
+                    uri=uri,
+                    checksum_sha256=checksum,
+                    content_type="model/gltf-binary",
+                    byte_size=0,
+                    root_node="root",
+                    default_scale=1.0,
+                    anchor_json=json.dumps(
+                        {
+                            "version": "1.0.0",
+                            "rootNode": "root",
+                            "category": slug,
+                            "development": True,
+                        }
+                    ),
+                )
+            )
+            db.commit()
+            print(f"Created development asset for: {name}")
 
 
 def run_seed() -> None:

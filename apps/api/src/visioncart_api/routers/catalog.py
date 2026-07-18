@@ -23,6 +23,10 @@ def list_products(
     category_slug: str | None = Query(default=None),
     search: str | None = Query(default=None),
     q: str | None = Query(default=None),
+    brand: str | None = Query(default=None),
+    color: str | None = Query(default=None),
+    limit: int = Query(default=50, ge=1, le=100),
+    offset: int = Query(default=0, ge=0),
 ) -> list[Product]:
     stmt = select(Product).where(Product.is_active.is_(True))
 
@@ -41,7 +45,12 @@ def list_products(
             )
         )
 
-    stmt = stmt.order_by(Product.name)
+    if brand:
+        stmt = stmt.where(Product.brand.ilike(brand.strip()))
+    if color:
+        stmt = stmt.where(Product.color.ilike(color.strip()))
+
+    stmt = stmt.order_by(Product.name).offset(offset).limit(limit)
     return list(db.scalars(stmt).all())
 
 

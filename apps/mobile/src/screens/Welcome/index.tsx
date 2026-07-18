@@ -1,13 +1,35 @@
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
+import {useMutation} from '@tanstack/react-query';
+import {useState} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import {ApiError, guestsApi} from '../../api_services';
 import {Button} from '../../components';
 import {APP_NAME, APP_TAGLINE, COLORS, SIZES} from '../../constants';
 import type {RootStackParamList} from '../../navigation/types';
+import {useGuestStore} from '../../store';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Welcome'>;
 
 export function Welcome({navigation}: Props) {
+  const setGuestKey = useGuestStore(state => state.setGuestKey);
+  const [error, setError] = useState<string | null>(null);
+
+  const guestMutation = useMutation({
+    mutationFn: () => guestsApi.createGuest(),
+    onSuccess: ({guest_key}) => {
+      setGuestKey(guest_key);
+      navigation.reset({index: 0, routes: [{name: 'Main'}]});
+    },
+    onError: (err: unknown) => {
+      setError(
+        err instanceof ApiError
+          ? err.message
+          : 'Unable to continue as guest right now.',
+      );
+    },
+  });
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={styles.hero}>
@@ -31,6 +53,20 @@ export function Welcome({navigation}: Props) {
           style={styles.secondaryButton}
           variant="secondary"
         />
+        <Button
+          label="Continue as guest"
+          loading={guestMutation.isPending}
+          onPress={() => {
+            setError(null);
+            guestMutation.mutate();
+          }}
+          variant="ghost"
+        />
+        {error ? (
+          <Text accessibilityLiveRegion="polite" style={styles.error}>
+            {error}
+          </Text>
+        ) : null}
       </View>
     </SafeAreaView>
   );
@@ -86,5 +122,10 @@ const styles = StyleSheet.create({
   },
   secondaryButton: {
     marginTop: SIZES.spacing.sm,
+  },
+  error: {
+    color: COLORS.danger,
+    fontSize: SIZES.label,
+    textAlign: 'center',
   },
 });

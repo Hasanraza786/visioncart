@@ -14,6 +14,7 @@ import {Button, TextField} from '../../components';
 import {COLORS, SIZES} from '../../constants';
 import type {RootStackParamList} from '../../navigation/types';
 import {useAuthStore} from '../../store';
+import {mergeGuestAfterAuth} from '../../utils';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Register'>;
 
@@ -27,8 +28,9 @@ export function Register({navigation}: Props) {
   const registerMutation = useMutation({
     mutationFn: () =>
       authApi.register({email: email.trim(), password, name: name.trim()}),
-    onSuccess: (auth: AuthResponse) => {
+    onSuccess: async (auth: AuthResponse) => {
       setSession(auth);
+      await mergeGuestAfterAuth();
       navigation.reset({index: 0, routes: [{name: 'Main'}]});
     },
     onError: (err: unknown) => {
@@ -90,7 +92,11 @@ export function Register({navigation}: Props) {
           value={password}
         />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? (
+          <Text accessibilityLiveRegion="polite" style={styles.error}>
+            {error}
+          </Text>
+        ) : null}
 
         <Button
           label="Create account"

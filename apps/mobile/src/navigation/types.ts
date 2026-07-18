@@ -16,6 +16,9 @@ export type RootStackParamList = {
   TryOnLauncher: {productId: number};
   Checkout: undefined;
   OrderConfirmation: {orderId: number};
+  Favorites: undefined;
+  RecentlyTried: undefined;
+  Settings: undefined;
   Foundation: undefined;
 };
 

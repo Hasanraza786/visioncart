@@ -1,27 +1,48 @@
 import type {NativeStackScreenProps} from '@react-navigation/native-stack';
-import {useEffect} from 'react';
+import {useEffect, useMemo} from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Linking,
+  Pressable,
   ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
-import {useAddToCart, useProduct} from '../../api_services';
+import {
+  useAddFavorite,
+  useAddToCart,
+  useFavorites,
+  useProduct,
+  useRemoveFavorite,
+} from '../../api_services';
 import {getTryOnCategory} from '../../assets';
 import {Button, ProductImage} from '../../components';
 import {COLORS, SIZES} from '../../constants';
 import type {RootStackParamList} from '../../navigation/types';
+import {useAuthStore} from '../../store';
 import {formatPrice} from '../../utils';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'ProductDetail'>;
 
 export function ProductDetail({navigation, route}: Props) {
   const {productId} = route.params;
+  const accessToken = useAuthStore(state => state.accessToken);
+  const isSignedIn = Boolean(accessToken);
   const productQuery = useProduct(productId);
+  const favoritesQuery = useFavorites(isSignedIn);
+  const addFavorite = useAddFavorite();
+  const removeFavorite = useRemoveFavorite();
   const addToCart = useAddToCart();
   const product = productQuery.data;
+
+  const isFavorite = useMemo(() => {
+    if (!favoritesQuery.data) {
+      return false;
+    }
+    return favoritesQuery.data.some(fav => fav.product.id === productId);
+  }, [favoritesQuery.data, productId]);
 
   useEffect(() => {
     if (product?.name) {
@@ -40,7 +61,9 @@ export function ProductDetail({navigation, route}: Props) {
   if (productQuery.isError || !product) {
     return (
       <View style={styles.center}>
-        <Text style={styles.error}>Couldn't load this product.</Text>
+        <Text accessibilityLiveRegion="polite" style={styles.error}>
+          Couldn't load this product.
+        </Text>
         <Button
           label="Go back"
           onPress={() => navigation.goBack()}
@@ -51,6 +74,31 @@ export function ProductDetail({navigation, route}: Props) {
   }
 
   const canTryOn = getTryOnCategory(product.tryon_model_key) !== undefined;
+  const favoriteBusy = addFavorite.isPending || removeFavorite.isPending;
+
+  const toggleFavorite = () => {
+    if (!isSignedIn) {
+      Alert.alert('Sign in required', 'Sign in to save favorites.', [
+        {text: 'Cancel', style: 'cancel'},
+        {text: 'Sign in', onPress: () => navigation.navigate('Login')},
+      ]);
+      return;
+    }
+    if (isFavorite) {
+      removeFavorite.mutate(product.id);
+    } else {
+      addFavorite.mutate(product.id);
+    }
+  };
+
+  const openSeller = () => {
+    if (!product.seller_url) {
+      return;
+    }
+    Linking.openURL(product.seller_url).catch(() => {
+      Alert.alert('Unable to open link', 'The seller URL could not be opened.');
+    });
+  };
 
   const handleAddToCart = () => {
     addToCart.mutate(
@@ -82,8 +130,28 @@ export function ProductDetail({navigation, route}: Props) {
         uri={product.preview_url}
       />
 
-      <Text style={styles.brand}>{product.brand}</Text>
-      <Text style={styles.name}>{product.name}</Text>
+      <View style={styles.titleRow}>
+        <View style={styles.titleBody}>
+          <Text style={styles.brand}>{product.brand}</Text>
+          <Text accessibilityRole="header" style={styles.name}>
+            {product.name}
+          </Text>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={
+            isFavorite ? 'Remove from favorites' : 'Add to favorites'
+          }
+          accessibilityState={{selected: isFavorite}}
+          disabled={favoriteBusy}
+          onPress={toggleFavorite}
+          style={[styles.favButton, isFavorite ? styles.favButtonActive : null]}>
+          <Text style={[styles.favIcon, isFavorite ? styles.favIconActive : null]}>
+            {isFavorite ? '♥' : '♡'}
+          </Text>
+        </Pressable>
+      </View>
+
       <Text style={styles.price}>
         {formatPrice(product.price_cents, product.currency)}
       </Text>
@@ -94,10 +162,21 @@ export function ProductDetail({navigation, route}: Props) {
             <Text style={styles.metaText}>Color: {product.color}</Text>
           </View>
         ) : null}
+        {product.brand ? (
+          <View style={styles.metaPill}>
+            <Text style={styles.metaText}>Brand: {product.brand}</Text>
+          </View>
+        ) : null}
       </View>
 
       {product.description ? (
         <Text style={styles.description}>{product.description}</Text>
+      ) : null}
+
+      {canTryOn ? (
+        <Text style={styles.disclaimer}>
+          Development preview — not a sizing tool
+        </Text>
       ) : null}
 
       <View style={styles.actions}>
@@ -108,6 +187,13 @@ export function ProductDetail({navigation, route}: Props) {
               navigation.navigate('TryOnLauncher', {productId: product.id})
             }
             variant="secondary"
+          />
+        ) : null}
+        {product.seller_url ? (
+          <Button
+            label="View on seller site"
+            onPress={openSeller}
+            variant="ghost"
           />
         ) : null}
         <Button
@@ -136,6 +222,14 @@ const styles = StyleSheet.create({
     aspectRatio: 1,
     marginBottom: SIZES.spacing.lg,
   },
+  titleRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: SIZES.spacing.md,
+  },
+  titleBody: {
+    flex: 1,
+  },
   brand: {
     color: COLORS.textSubtle,
     fontSize: SIZES.label,
@@ -147,6 +241,27 @@ const styles = StyleSheet.create({
     color: COLORS.text,
     fontSize: SIZES.heading,
     fontWeight: '800',
+  },
+  favButton: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.border,
+    backgroundColor: COLORS.backgroundMuted,
+  },
+  favButtonActive: {
+    borderColor: COLORS.danger,
+    backgroundColor: '#FEF2F2',
+  },
+  favIcon: {
+    fontSize: 22,
+    color: COLORS.textSubtle,
+  },
+  favIconActive: {
+    color: COLORS.danger,
   },
   price: {
     marginTop: SIZES.spacing.sm,
@@ -177,6 +292,13 @@ const styles = StyleSheet.create({
     color: COLORS.textMuted,
     fontSize: SIZES.body,
     lineHeight: 24,
+  },
+  disclaimer: {
+    marginTop: SIZES.spacing.md,
+    color: COLORS.textSubtle,
+    fontSize: SIZES.label,
+    fontStyle: 'italic',
+    lineHeight: 20,
   },
   actions: {
     marginTop: SIZES.spacing.xl,

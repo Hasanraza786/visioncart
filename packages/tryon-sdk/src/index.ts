@@ -13,6 +13,8 @@ export interface CapabilityResult {
   readonly category: TryOnCategory;
   readonly engine?: string;
   readonly reason?: string;
+  readonly deviceTier?: 'high' | 'standard' | 'fallback' | 'unsupported';
+  readonly captureSupported?: boolean;
 }
 
 export interface TryOnConfig {
@@ -25,6 +27,9 @@ export interface TryOnConfig {
   readonly dimensions: ProductDimensions;
   readonly anchorProfile: AnchorProfile;
   readonly captureEnabled: boolean;
+  /** Contract / asset schema version for native validation. */
+  readonly contractVersion?: string;
+  readonly development?: boolean;
 }
 
 export interface TryOnResult {
@@ -33,6 +38,7 @@ export interface TryOnResult {
   readonly durationMs: number;
   readonly captureUri?: string;
   readonly errorCode?: TryOnErrorCode;
+  readonly engine?: string;
 }
 
 export interface VisionCartTryOnSdk {
