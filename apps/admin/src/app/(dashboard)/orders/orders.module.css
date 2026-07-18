@@ -1,0 +1,90 @@
+.orderRow {
+  cursor: pointer;
+}
+
+.expandIcon {
+  display: inline-block;
+  width: 16px;
+  color: var(--color-text-muted);
+  transition: transform 0.15s ease;
+}
+
+.expandIconOpen {
+  transform: rotate(90deg);
+}
+
+.detailsRow td {
+  background: #fafbfc;
+  padding: 0;
+}
+
+.detailsInner {
+  padding: 16px 20px 20px;
+  display: grid;
+  grid-template-columns: 1.1fr 1fr;
+  gap: 24px;
+}
+
+.detailsSection h3 {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--color-text-muted);
+  margin-bottom: 10px;
+}
+
+.itemRow {
+  display: flex;
+  justify-content: space-between;
+  padding: 6px 0;
+  font-size: 13px;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+}
+
+.itemName {
+  color: var(--color-text);
+}
+
+.itemMeta {
+  color: var(--color-text-muted);
+}
+
+.addressLine {
+  font-size: 13px;
+  color: var(--color-text);
+  margin: 0 0 2px;
+}
+
+.totalsRow {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  padding: 4px 0;
+}
+
+.totalsRowStrong {
+  font-weight: 700;
+  border-top: 1px solid var(--color-border);
+  margin-top: 6px;
+  padding-top: 8px;
+}
+
+.statusSelect {
+  border: 1px solid var(--color-border);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 12.5px;
+  font-weight: 600;
+  background: var(--color-surface);
+  cursor: pointer;
+}
+
+.statusSelect:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-soft);
+}

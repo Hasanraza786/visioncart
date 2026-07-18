@@ -1,0 +1,13 @@
+{
+  "category": "nose_pin",
+  "dimensionsMm": {
+    "depth": 3,
+    "height": 8,
+    "width": 8
+  },
+  "name": "Synthetic Nose Pin Draft",
+  "productId": "synthetic-nose-pin",
+  "schemaVersion": "1.0.0",
+  "sourceNote": "Procedurally generated contract fixture; not a production scan or conversion.",
+  "synthetic": true
+}

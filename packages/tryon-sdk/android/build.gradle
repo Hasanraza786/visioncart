@@ -1,0 +1,34 @@
+buildscript {
+  repositories {
+    google()
+    mavenCentral()
+  }
+}
+
+apply plugin: "com.android.library"
+apply plugin: "com.facebook.react"
+
+android {
+  namespace "com.visioncart.tryon"
+  compileSdk rootProject.ext.has("compileSdkVersion")
+      ? rootProject.ext.get("compileSdkVersion")
+      : 36
+
+  defaultConfig {
+    minSdk rootProject.ext.has("minSdkVersion")
+        ? rootProject.ext.get("minSdkVersion")
+        : 24
+    targetSdk rootProject.ext.has("targetSdkVersion")
+        ? rootProject.ext.get("targetSdkVersion")
+        : 36
+  }
+}
+
+react {
+  libraryName = "RNVisionCartTryOnSpec"
+  codegenJavaPackageName = "com.visioncart.tryon"
+}
+
+dependencies {
+  implementation("com.facebook.react:react-android")
+}

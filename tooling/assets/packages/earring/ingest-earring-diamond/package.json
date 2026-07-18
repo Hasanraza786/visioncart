@@ -1,0 +1,36 @@
+{
+  "anchors": "anchors.json",
+  "category": "earring",
+  "files": [
+    {
+      "bytes": 255528,
+      "mediaType": "model/gltf-binary",
+      "path": "assets/model.glb",
+      "placeholder": false,
+      "role": "model-gltf",
+      "sha256": "42d3323d3f225902b852e7d2032cbf5340221bddfae53e2e8daac4c75f023e2c"
+    },
+    {
+      "bytes": 148,
+      "mediaType": "application/vnd.visioncart.ingest-usdz-placeholder",
+      "path": "assets/model.usdz.placeholder.txt",
+      "placeholder": true,
+      "role": "model-usdz",
+      "sha256": "3c87bd8db9e56b691c286b00bf1b8df3b4e47e8e86fc503539c98be15cb8db89"
+    },
+    {
+      "bytes": 569,
+      "mediaType": "image/png",
+      "path": "assets/preview.png",
+      "placeholder": false,
+      "role": "preview",
+      "sha256": "d5335ca356ae2ae720e2a3e4acc64690998efca01441cfa67084c80cd24f2812"
+    }
+  ],
+  "license": "license.json",
+  "packageId": "ingest-earring-diamond",
+  "phase": "A0",
+  "product": "product.json",
+  "schemaVersion": "1.0.0",
+  "status": "ingest-draft"
+}

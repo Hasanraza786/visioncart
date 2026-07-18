@@ -1,0 +1,13 @@
+{
+  "category": "watch",
+  "dimensionsMm": {
+    "depth": 12.0,
+    "height": 48.0,
+    "width": 42.0
+  },
+  "name": "Classic Watch",
+  "productId": "ingest-watch-classic",
+  "schemaVersion": "1.0.0",
+  "sourceNote": "Optimized from Sketchfab-exported GLB placed in the mobile assets folder. Mesh scale is not millimetre-authored; dimensionsMm uses category-plausible draft values until measured.",
+  "synthetic": false
+}

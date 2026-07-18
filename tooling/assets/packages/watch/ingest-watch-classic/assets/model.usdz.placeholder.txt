@@ -1,0 +1,3 @@
+INGEST-DRAFT PLACEHOLDER ONLY
+Real GLB ingested and optimized; USDZ conversion toolchain is not pinned yet.
+Do not treat this file as a USDZ asset.

@@ -1,0 +1,36 @@
+{
+  "anchors": "anchors.json",
+  "category": "ring",
+  "files": [
+    {
+      "bytes": 295408,
+      "mediaType": "model/gltf-binary",
+      "path": "assets/model.glb",
+      "placeholder": false,
+      "role": "model-gltf",
+      "sha256": "e5aa225a4237837a0447d82e2f7cc63541e3570a6105678dbcfca9b1a7efe1f2"
+    },
+    {
+      "bytes": 148,
+      "mediaType": "application/vnd.visioncart.ingest-usdz-placeholder",
+      "path": "assets/model.usdz.placeholder.txt",
+      "placeholder": true,
+      "role": "model-usdz",
+      "sha256": "3c87bd8db9e56b691c286b00bf1b8df3b4e47e8e86fc503539c98be15cb8db89"
+    },
+    {
+      "bytes": 569,
+      "mediaType": "image/png",
+      "path": "assets/preview.png",
+      "placeholder": false,
+      "role": "preview",
+      "sha256": "d19fcd7ad2b726c606638e9412b619865ca03888aec27eb8de694e0619e892f9"
+    }
+  ],
+  "license": "license.json",
+  "packageId": "ingest-ring-lowpoly",
+  "phase": "A0",
+  "product": "product.json",
+  "schemaVersion": "1.0.0",
+  "status": "ingest-draft"
+}

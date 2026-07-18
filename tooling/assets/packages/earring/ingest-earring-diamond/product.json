@@ -1,0 +1,13 @@
+{
+  "category": "earring",
+  "dimensionsMm": {
+    "depth": 4.0,
+    "height": 28.0,
+    "width": 18.0
+  },
+  "name": "Diamond Earrings",
+  "productId": "ingest-earring-diamond",
+  "schemaVersion": "1.0.0",
+  "sourceNote": "Optimized from Sketchfab-exported GLB placed in the mobile assets folder. Mesh scale is not millimetre-authored; dimensionsMm uses category-plausible draft values until measured.",
+  "synthetic": false
+}

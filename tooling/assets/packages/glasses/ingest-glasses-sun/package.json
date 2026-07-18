@@ -1,0 +1,36 @@
+{
+  "anchors": "anchors.json",
+  "category": "glasses",
+  "files": [
+    {
+      "bytes": 209032,
+      "mediaType": "model/gltf-binary",
+      "path": "assets/model.glb",
+      "placeholder": false,
+      "role": "model-gltf",
+      "sha256": "f3e2a76900f6be4704675ca4a176ec517963110d3238e6a97939f0e24360f55a"
+    },
+    {
+      "bytes": 148,
+      "mediaType": "application/vnd.visioncart.ingest-usdz-placeholder",
+      "path": "assets/model.usdz.placeholder.txt",
+      "placeholder": true,
+      "role": "model-usdz",
+      "sha256": "3c87bd8db9e56b691c286b00bf1b8df3b4e47e8e86fc503539c98be15cb8db89"
+    },
+    {
+      "bytes": 569,
+      "mediaType": "image/png",
+      "path": "assets/preview.png",
+      "placeholder": false,
+      "role": "preview",
+      "sha256": "f59ad08d472457d3d0934c5e459ba3cbec8e6738ab1982ad79ef389021fa3eb7"
+    }
+  ],
+  "license": "license.json",
+  "packageId": "ingest-glasses-sun",
+  "phase": "A0",
+  "product": "product.json",
+  "schemaVersion": "1.0.0",
+  "status": "ingest-draft"
+}

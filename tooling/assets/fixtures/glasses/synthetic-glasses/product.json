@@ -1,0 +1,13 @@
+{
+  "category": "glasses",
+  "dimensionsMm": {
+    "depth": 145,
+    "height": 45,
+    "width": 140
+  },
+  "name": "Synthetic Glasses Draft",
+  "productId": "synthetic-glasses",
+  "schemaVersion": "1.0.0",
+  "sourceNote": "Procedurally generated contract fixture; not a production scan or conversion.",
+  "synthetic": true
+}

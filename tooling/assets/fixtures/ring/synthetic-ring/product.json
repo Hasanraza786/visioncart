@@ -1,0 +1,13 @@
+{
+  "category": "ring",
+  "dimensionsMm": {
+    "depth": 6,
+    "height": 22,
+    "width": 22
+  },
+  "name": "Synthetic Ring Draft",
+  "productId": "synthetic-ring",
+  "schemaVersion": "1.0.0",
+  "sourceNote": "Procedurally generated contract fixture; not a production scan or conversion.",
+  "synthetic": true
+}

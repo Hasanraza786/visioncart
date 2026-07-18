@@ -1,0 +1,55 @@
+[project]
+name = "visioncart-api"
+version = "0.1.0"
+description = "VisionCart MVP backend API"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+  "alembic",
+  "argon2-cffi",
+  "email-validator",
+  "fastapi",
+  "google-auth",
+  "psycopg[binary]",
+  "pydantic-settings",
+  "pyjwt[crypto]",
+  "requests",
+  "sqlalchemy",
+  "uvicorn[standard]",
+]
+
+[dependency-groups]
+dev = [
+  "httpx",
+  "mypy",
+  "pytest",
+  "ruff",
+  "types-requests",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/visioncart_api"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[[tool.mypy.overrides]]
+module = [
+  "google.*",
+]
+ignore_missing_imports = true
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "SIM"]

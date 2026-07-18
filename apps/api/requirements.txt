@@ -1,0 +1,13 @@
+# Runtime dependencies for Vercel Python deployment.
+# Local development uses uv + pyproject.toml; this file mirrors runtime deps.
+alembic
+argon2-cffi
+email-validator
+fastapi
+google-auth
+psycopg[binary]
+pydantic-settings
+pyjwt[crypto]
+requests
+sqlalchemy
+uvicorn[standard]

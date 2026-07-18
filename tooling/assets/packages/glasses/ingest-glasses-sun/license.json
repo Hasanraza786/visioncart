@@ -1,0 +1,12 @@
+{
+  "copyright": "Original authors via Sketchfab download; license verification pending.",
+  "restrictions": [
+    "Commercial use blocked until SPDX license is verified against the original source",
+    "USDZ derivative pending; package status is ingest-draft",
+    "Not approved as a production-candidate A0 asset"
+  ],
+  "schemaVersion": "1.0.0",
+  "source": "Optimized from local source model glasses.glb",
+  "spdxId": "LicenseRef-PendingVerification",
+  "synthetic": false
+}

@@ -1,0 +1,14 @@
+# Local SQLite database (dev/test fallback)
+data/
+*.db
+
+# Python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Local env
+.env

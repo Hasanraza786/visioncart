@@ -1,0 +1,13 @@
+{
+  "category": "earring",
+  "dimensionsMm": {
+    "depth": 4,
+    "height": 28,
+    "width": 18
+  },
+  "name": "Synthetic Earring Draft",
+  "productId": "synthetic-earring",
+  "schemaVersion": "1.0.0",
+  "sourceNote": "Procedurally generated contract fixture; not a production scan or conversion.",
+  "synthetic": true
+}

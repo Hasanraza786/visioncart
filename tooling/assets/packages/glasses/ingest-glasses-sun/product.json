@@ -1,0 +1,13 @@
+{
+  "category": "glasses",
+  "dimensionsMm": {
+    "depth": 145.0,
+    "height": 45.0,
+    "width": 140.0
+  },
+  "name": "Sun Glasses",
+  "productId": "ingest-glasses-sun",
+  "schemaVersion": "1.0.0",
+  "sourceNote": "Optimized from Sketchfab-exported GLB placed in the mobile assets folder. Mesh scale is not millimetre-authored; dimensionsMm uses category-plausible draft values until measured.",
+  "synthetic": false
+}

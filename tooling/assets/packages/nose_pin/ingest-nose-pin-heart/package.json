@@ -1,0 +1,36 @@
+{
+  "anchors": "anchors.json",
+  "category": "nose_pin",
+  "files": [
+    {
+      "bytes": 727156,
+      "mediaType": "model/gltf-binary",
+      "path": "assets/model.glb",
+      "placeholder": false,
+      "role": "model-gltf",
+      "sha256": "c7ff430193f7d21ebac840eb36a30418c013366f713de5425854c5443f613a8f"
+    },
+    {
+      "bytes": 148,
+      "mediaType": "application/vnd.visioncart.ingest-usdz-placeholder",
+      "path": "assets/model.usdz.placeholder.txt",
+      "placeholder": true,
+      "role": "model-usdz",
+      "sha256": "3c87bd8db9e56b691c286b00bf1b8df3b4e47e8e86fc503539c98be15cb8db89"
+    },
+    {
+      "bytes": 568,
+      "mediaType": "image/png",
+      "path": "assets/preview.png",
+      "placeholder": false,
+      "role": "preview",
+      "sha256": "f1f5a9e6e05fec239588d9fddbb51214eb2fb2618a59e7d162128e4be9f57907"
+    }
+  ],
+  "license": "license.json",
+  "packageId": "ingest-nose-pin-heart",
+  "phase": "A0",
+  "product": "product.json",
+  "schemaVersion": "1.0.0",
+  "status": "ingest-draft"
+}

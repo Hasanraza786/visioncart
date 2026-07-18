@@ -1,0 +1,13 @@
+{
+  "category": "ring",
+  "dimensionsMm": {
+    "depth": 6.0,
+    "height": 22.0,
+    "width": 22.0
+  },
+  "name": "Low Poly Ring",
+  "productId": "ingest-ring-lowpoly",
+  "schemaVersion": "1.0.0",
+  "sourceNote": "Optimized from Sketchfab-exported GLB placed in the mobile assets folder. Mesh scale is not millimetre-authored; dimensionsMm uses category-plausible draft values until measured.",
+  "synthetic": false
+}

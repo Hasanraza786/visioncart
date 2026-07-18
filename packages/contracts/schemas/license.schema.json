@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://visioncart.dev/schemas/assets/v1/license.schema.json",
+  "title": "VisionCart A0 Asset License",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "spdxId", "copyright", "source", "synthetic"],
+  "properties": {
+    "schemaVersion": {"const": "1.0.0"},
+    "spdxId": {"type": "string", "minLength": 1, "maxLength": 80},
+    "copyright": {"type": "string", "minLength": 1, "maxLength": 200},
+    "source": {"type": "string", "minLength": 1, "maxLength": 500},
+    "synthetic": {"type": "boolean"},
+    "restrictions": {
+      "type": "array",
+      "items": {"type": "string", "minLength": 1},
+      "uniqueItems": true
+    }
+  }
+}

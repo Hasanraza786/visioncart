@@ -1,0 +1,36 @@
+{
+  "anchors": "anchors.json",
+  "category": "watch",
+  "files": [
+    {
+      "bytes": 2065116,
+      "mediaType": "model/gltf-binary",
+      "path": "assets/model.glb",
+      "placeholder": false,
+      "role": "model-gltf",
+      "sha256": "1fd5a0af7cc3b3b4aaba635843c21bf3886f32b9eaa178bb74c44507db4d193e"
+    },
+    {
+      "bytes": 148,
+      "mediaType": "application/vnd.visioncart.ingest-usdz-placeholder",
+      "path": "assets/model.usdz.placeholder.txt",
+      "placeholder": true,
+      "role": "model-usdz",
+      "sha256": "3c87bd8db9e56b691c286b00bf1b8df3b4e47e8e86fc503539c98be15cb8db89"
+    },
+    {
+      "bytes": 568,
+      "mediaType": "image/png",
+      "path": "assets/preview.png",
+      "placeholder": false,
+      "role": "preview",
+      "sha256": "f3044d4ddcefd882dbc0d7eb06452208b75a1e58259ddd1ca27d73f40160d966"
+    }
+  ],
+  "license": "license.json",
+  "packageId": "ingest-watch-classic",
+  "phase": "A0",
+  "product": "product.json",
+  "schemaVersion": "1.0.0",
+  "status": "ingest-draft"
+}

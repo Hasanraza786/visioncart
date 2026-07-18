@@ -1,0 +1,6 @@
+{
+  "extends": "@visioncart/config-typescript/react-native.json",
+  "include": [
+    "src/**/*.ts"
+  ]
+}

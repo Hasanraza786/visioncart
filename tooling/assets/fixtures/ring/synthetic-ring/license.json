@@ -1,0 +1,11 @@
+{
+  "copyright": "No external source; generated synthetic geometry.",
+  "restrictions": [
+    "Contract testing only",
+    "Not approved as a production asset"
+  ],
+  "schemaVersion": "1.0.0",
+  "source": "VisionCart deterministic fixture generator",
+  "spdxId": "CC0-1.0",
+  "synthetic": true
+}

@@ -1,0 +1,36 @@
+{
+  "anchors": "anchors.json",
+  "category": "watch",
+  "files": [
+    {
+      "bytes": 688,
+      "mediaType": "model/gltf-binary",
+      "path": "assets/model.glb",
+      "placeholder": true,
+      "role": "model-gltf",
+      "sha256": "c479dc68f6dee9a8dec548f2cdeea7f8523ad42f8e2fdac384f200a21a5cdc86"
+    },
+    {
+      "bytes": 106,
+      "mediaType": "application/vnd.visioncart.synthetic-usdz-placeholder",
+      "path": "assets/model.usdz.placeholder.txt",
+      "placeholder": true,
+      "role": "model-usdz",
+      "sha256": "01c46ad46f17cde818d54605f6f66c92e96aa17c7ee4b2487801d00573ddc4fc"
+    },
+    {
+      "bytes": 70,
+      "mediaType": "image/png",
+      "path": "assets/preview.png",
+      "placeholder": true,
+      "role": "preview",
+      "sha256": "aa7bb0431aaeb198a77c26a14fe6dd714a75e4d7db94e3e1238a1fdcbfe1f8d4"
+    }
+  ],
+  "license": "license.json",
+  "packageId": "synthetic-watch",
+  "phase": "A0",
+  "product": "product.json",
+  "schemaVersion": "1.0.0",
+  "status": "synthetic-draft"
+}

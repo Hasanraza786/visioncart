@@ -1,0 +1,87 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality and asset contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.21.1
+          cache: yarn
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v6
+        with:
+          version: "0.11.29"
+          enable-cache: true
+      - run: yarn install --immutable
+      - run: uv sync --locked --project apps/api
+      - run: uv sync --locked --project tooling/assets
+      - run: yarn check
+      - name: Validate all synthetic A0 fixtures
+        run: >-
+          uv run --project tooling/assets asset-cli report
+          tooling/assets/fixtures
+      - name: Validate ingest-draft A0 packages
+        run: >-
+          uv run --project tooling/assets asset-cli report
+          tooling/assets/packages
+
+  android:
+    name: Android debug build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.21.1
+          cache: yarn
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: gradle
+      - run: yarn install --immutable
+      - name: Build Android app and native try-on module
+        run: apps/mobile/android/gradlew -p apps/mobile/android assembleDebug
+
+  ios:
+    name: iOS simulator build
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22.21.1
+          cache: yarn
+      - uses: ruby/setup-ruby@v1
+        with:
+          bundler-cache: true
+          working-directory: apps/mobile
+      - run: yarn install --immutable
+      - name: Install CocoaPods
+        working-directory: apps/mobile/ios
+        run: bundle exec pod install
+      - name: Build iOS app and native try-on module
+        run: >-
+          xcodebuild
+          -workspace apps/mobile/ios/visioncart.xcworkspace
+          -scheme visioncart
+          -configuration Debug
+          -sdk iphonesimulator
+          -destination "generic/platform=iOS Simulator"
+          CODE_SIGNING_ALLOWED=NO
+          build

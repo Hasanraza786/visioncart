@@ -1,0 +1,62 @@
+{
+  "project_info": {
+    "project_number": "250279750810",
+    "project_id": "visioncart-aa49d",
+    "storage_bucket": "visioncart-aa49d.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:250279750810:android:28dccb74558d98dd63c323",
+        "android_client_info": {
+          "package_name": "com.visioncart"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "250279750810-fgcfaoebbmrprgt5pnoddv0jg59sqfa2.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.visioncart",
+            "certificate_hash": "5e8f16062ea3cd2c4a0d547876baa6f38cabf625"
+          }
+        },
+        {
+          "client_id": "250279750810-jhb8aalug04g3e3lo3a7s44749u4khjd.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.visioncart",
+            "certificate_hash": "84e057c9a2b5e2388ba630cbdfa7341129e78ad6"
+          }
+        },
+        {
+          "client_id": "250279750810-ju1f2567c7hhk563vq30lkdorrqrddgs.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCgpucwRWiOic_V-YyO69NFVEpbhk8vWzk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "250279750810-ju1f2567c7hhk563vq30lkdorrqrddgs.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "250279750810-ie9o1qmbvfli9jcef9egsj8p0gtvr7pk.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.visioncart"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

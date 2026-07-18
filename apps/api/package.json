@@ -1,0 +1,14 @@
+{
+  "name": "@visioncart/api",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "uv run python -m uvicorn visioncart_api.main:app --reload",
+    "start": "uv run python -m uvicorn visioncart_api.main:app --host 0.0.0.0 --port 8000",
+    "seed": "uv run python -m visioncart_api.seed",
+    "migrate": "uv run python -m visioncart_api.db",
+    "lint": "uv run python -m ruff check .",
+    "typecheck": "uv run python -m mypy src",
+    "test": "uv run python -m pytest"
+  }
+}
